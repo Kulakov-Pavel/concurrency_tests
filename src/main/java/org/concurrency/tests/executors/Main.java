@@ -3,30 +3,25 @@ package org.concurrency.tests.executors;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        ExecutorService pool = Executors.newFixedThreadPool(4);
 
-        Callable<String> c1 = () -> {
-            asleep(5);
-            System.out.println(Thread.currentThread().getName());
-            return "Callable #1";
-        };
-        Callable<String> c2 = () -> {
-            asleep(5);
-            System.out.println(Thread.currentThread().getName());
-            return "Callable #2";
-        };
+        ExecutorService pool = new MonitoredExecutorService(
+                2, 2, 60, SECONDS, new LinkedBlockingQueue<>());
 
-        pool.invokeAll(List.of(c1, c2));
+        Callable<String> r1 = () -> "Runnable + #" + 1;
+        Callable<String> r2 = () -> "Runnable + #" + 2;
+        Callable<String> r3 = () -> "Runnable + #" + 3;
+        Callable<String> r4 = () -> "Runnable + #" + 4;
+        Callable<String> r5 = () -> "Runnable + #" + 5;
+
+        pool.invokeAll(List.of(r1, r2, r3, r4, r5));
 
         pool.shutdown();
-        boolean termination = pool.awaitTermination(2, SECONDS);
-        System.out.println(termination);
     }
 
     private static void asleep(int value) throws InterruptedException {
